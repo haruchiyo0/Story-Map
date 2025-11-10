@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/src/styles/leaflet.css" />
+    <link rel="stylesheet" href="/src/styles/styles.css" />
+    <link rel="shortcut icon" href="/favicon.png" />
+    <link rel="manifest" href="/manifest.json">
+    <title>StoryMap</title>
+
+    <script type="module" src="/src/scripts/index.js"></script>
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+      <div class="main-header container">
+        <a class="brand-name" href="#/home">StoryMap</a>
+
+        <nav id="navigation-drawer" class="navigation-drawer">
+          <ul id="nav-list" class="nav-list">
+            <li><a href="#/home">Home</a></li>
+            <li><a href="#/add">Add Story</a></li>
+            <li><a href="#/auth">Login</a></li>
+            <li><a href="#/favorite">Favorite</a></li>
+          </ul>
+        </nav>
+
+        <button
+          id="drawer-button"
+          class="drawer-button"
+          aria-label="Open navigation menu"
+        >
+          ☰
+        </button>
+      </div>
+    </header>
+
+    <main id="main-content" class="main-content" role="main"></main>
+  </body>
+</html>
