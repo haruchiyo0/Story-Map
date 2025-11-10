@@ -25,13 +25,14 @@ export async function registerServiceWorker() {
   }
 
   try {
-    // Unregister old service worker if exists
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    for (const registration of registrations) {
-      await registration.unregister();
+    // Cek apakah sudah ada service worker yang terdaftar
+    const existing = await navigator.serviceWorker.getRegistration('/');
+    if (existing) {
+      console.log('Service Worker already registered:', existing.scope);
+      return existing;
     }
 
-    // Register new service worker
+    // Daftarkan service worker baru
     const registration = await navigator.serviceWorker.register('/sw.js', {
       scope: '/',
       updateViaCache: 'none'
@@ -39,14 +40,13 @@ export async function registerServiceWorker() {
 
     console.log('Service Worker registered successfully:', registration.scope);
 
-    // Handle updates
+    // Handle update
     registration.addEventListener('updatefound', () => {
       const newWorker = registration.installing;
       console.log('New Service Worker found, installing...');
 
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // New service worker available, notify user
           if (confirm('New version available! Reload to update?')) {
             window.location.reload();
           }
@@ -54,10 +54,10 @@ export async function registerServiceWorker() {
       });
     });
 
-    // Check for updates periodically
+    // Cek update berkala (tiap 1 jam)
     setInterval(() => {
       registration.update();
-    }, 60 * 60 * 1000); // Check every hour
+    }, 60 * 60 * 1000);
 
     return registration;
   } catch (error) {

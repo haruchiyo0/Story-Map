@@ -60,8 +60,15 @@ class App {
   }
 
   async renderPage() {
+    console.log('Rendering page...');
     const url = getActiveRoute();
+    console.log('Active route:', url);
     const page = routes[url];
+    console.log('Page:', page);
+    if (!page) {
+      console.error('Page not found for route:', url);
+      return;
+    }
     const token = localStorage.getItem("token");
     const navList = document.getElementById("nav-list");
     if (token) {
