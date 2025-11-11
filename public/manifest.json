@@ -1,9 +1,9 @@
 {
-  "id": "/#/home",
+  "id": "/",
   "name": "StoryMap - Share Stories on Map",
   "short_name": "StoryMap",
   "description": "Share your stories with location on an interactive map. Connect with people through location-based storytelling.",
-  "start_url": "/#/home",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
@@ -25,18 +25,18 @@
   ],
   "screenshots": [
     {
-      "src": "/screenshot.png",
+      "src": "/screenshot-desktop.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "StoryMap home screen on desktop"
+      "label": "StoryMap on Desktop"
     },
     {
-      "src": "/screenshot.png",
+      "src": "/screenshot-mobile.png",
       "sizes": "750x1334",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "StoryMap home screen on mobile"
+      "label": "StoryMap on Mobile"
     }
   ],
   "shortcuts": [

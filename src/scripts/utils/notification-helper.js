@@ -136,3 +136,5 @@ export async function unsubscribe() {
     console.error('unsubscribe: error:', error);
   }
 }
+
+window.subscribeNotif = subscribe;

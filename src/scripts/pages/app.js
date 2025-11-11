@@ -1,5 +1,6 @@
 import routes from "../routes/routes";
 import { getActiveRoute } from "../routes/url-parser";
+import 'leaflet/dist/leaflet.css';
 import { isServiceWorkerAvailable } from "../utils/index";
 import {
   isCurrentPushSubscriptionAvailable,
@@ -19,7 +20,7 @@ class App {
     this.#navigationDrawer = navigationDrawer;
     this.#setupDrawer();
     this.#setupInstallPrompt();
-    this.#registerServiceWorker(); // 👈 tambahin ini biar SW langsung aktif
+    this.#registerServiceWorker(); 
   }
 
   #setupDrawer() {

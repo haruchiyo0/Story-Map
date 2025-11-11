@@ -1,4 +1,6 @@
 import L from "leaflet";
+import markerIconPng from 'leaflet/dist/images/marker-icon.png';
+import markerShadowPng from 'leaflet/dist/images/marker-shadow.png';
 
 let map,
   markers = [];
