@@ -79,6 +79,10 @@ export default class AddPage {
 
       if (!validateForm({ name, description, photo })) return;
 
+      const submitButton = form.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+      submitButton.textContent = 'Uploading...';
+
       try {
         if (!navigator.onLine) {
           // === OFFLINE MODE ===
@@ -98,23 +102,18 @@ export default class AddPage {
         } else {
           // === ONLINE MODE ===
           await addStory({ name, description, photo, lat, lon });
+          
+          // === TRIGGER PUSH NOTIFICATION ===
+          await this.#sendPushNotification(name);
+          
           alert('Story added successfully!');
-
-          // === Trigger push notification ===
-          if ('serviceWorker' in navigator) {
-            const reg = await navigator.serviceWorker.getRegistration();
-            if (reg) {
-              reg.showNotification('Story Added', {
-                body: 'Your story has been added successfully!',
-                icon: '/icon-192x192.png'
-              });
-            }
-          }
-
           location.hash = '#/home';
         }
       } catch (error) {
+        console.error('Error adding story:', error);
         alert('Error: ' + error.message);
+        submitButton.disabled = false;
+        submitButton.textContent = 'Submit';
       }
     });
 
@@ -123,29 +122,67 @@ export default class AddPage {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         const modal = document.createElement('div');
-        modal.style.position = 'fixed';
-        modal.style.top = '0';
-        modal.style.left = '0';
-        modal.style.width = '100%';
-        modal.style.height = '100%';
-        modal.style.background = 'rgba(0,0,0,0.8)';
-        modal.style.display = 'flex';
-        modal.style.alignItems = 'center';
-        modal.style.justifyContent = 'center';
-        modal.style.zIndex = '1000';
+        modal.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.9);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          z-index: 10000;
+          gap: 20px;
+        `;
 
         const video = document.createElement('video');
         video.srcObject = stream;
         video.autoplay = true;
-        video.style.width = '300px';
-        video.style.height = '200px';
+        video.style.cssText = `
+          width: 90%;
+          max-width: 400px;
+          border-radius: 10px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        `;
+
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+          display: flex;
+          gap: 15px;
+        `;
 
         const captureBtn = document.createElement('button');
-        captureBtn.textContent = 'Capture';
-        captureBtn.style.marginTop = '10px';
+        captureBtn.textContent = '📸 Capture';
+        captureBtn.style.cssText = `
+          padding: 15px 30px;
+          font-size: 1rem;
+          background: linear-gradient(135deg, #27ae60, #2ecc71);
+          color: white;
+          border: none;
+          border-radius: 10px;
+          cursor: pointer;
+          font-weight: bold;
+        `;
 
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = '❌ Cancel';
+        cancelBtn.style.cssText = `
+          padding: 15px 30px;
+          font-size: 1rem;
+          background: linear-gradient(135deg, #e74c3c, #c0392b);
+          color: white;
+          border: none;
+          border-radius: 10px;
+          cursor: pointer;
+          font-weight: bold;
+        `;
+
+        buttonContainer.appendChild(captureBtn);
+        buttonContainer.appendChild(cancelBtn);
         modal.appendChild(video);
-        modal.appendChild(captureBtn);
+        modal.appendChild(buttonContainer);
         document.body.appendChild(modal);
 
         captureBtn.addEventListener('click', () => {
@@ -158,14 +195,61 @@ export default class AddPage {
             const dt = new DataTransfer();
             dt.items.add(file);
             document.getElementById('photo').files = dt.files;
-            alert('Image captured!');
+            alert('📸 Image captured successfully!');
           });
           stream.getTracks().forEach(track => track.stop());
           document.body.removeChild(modal);
         });
+
+        cancelBtn.addEventListener('click', () => {
+          stream.getTracks().forEach(track => track.stop());
+          document.body.removeChild(modal);
+        });
       } catch (err) {
-        alert('Camera access denied: ' + err.message);
+        console.error('Camera error:', err);
+        alert('Camera access denied or not available: ' + err.message);
       }
     });
+  }
+
+  async #sendPushNotification(storyName) {
+    try {
+      // Check if service worker is ready
+      if (!('serviceWorker' in navigator)) {
+        console.log('Service Worker not supported');
+        return;
+      }
+
+      const registration = await navigator.serviceWorker.ready;
+      
+      // Check if user has notification permission
+      if (Notification.permission !== 'granted') {
+        console.log('Notification permission not granted');
+        return;
+      }
+
+      // Show notification directly from service worker
+      await registration.showNotification('🎉 Story Added!', {
+        body: `Your story "${storyName}" has been published successfully!`,
+        icon: '/favicon.png',
+        badge: '/favicon.png',
+        vibrate: [200, 100, 200],
+        tag: 'story-added',
+        requireInteraction: false,
+        actions: [
+          { action: 'view', title: '👀 View Story', icon: '/favicon.png' },
+          { action: 'close', title: '✅ OK', icon: '/favicon.png' }
+        ],
+        data: {
+          url: '/#/home',
+          timestamp: Date.now(),
+          type: 'story-added'
+        }
+      });
+
+      console.log('✅ Push notification sent successfully');
+    } catch (error) {
+      console.error('❌ Error sending notification:', error);
+    }
   }
 }

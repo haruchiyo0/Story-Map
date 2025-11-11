@@ -1,2 +1,2 @@
-APP_URL=http://localhost:5173
+APP_URL=https://gentle-lollipop-84a466.netlify.app/
 MAP_SERVICE_API_KEY=Tidak diperlukan
