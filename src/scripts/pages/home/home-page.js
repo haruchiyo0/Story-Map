@@ -1,6 +1,6 @@
 import { getStories } from '../../data/api';
 import { initMap, addMarkers, filterMarkers } from '../../utils/index';
-import { saveStory } from '../../utils/idb';
+import Database from '../../utils/idb';
 
 export default class HomePage {
   async render() {

@@ -143,3 +143,4 @@ const Database = {
 };
 
 export default Database;
+export const saveStory = Database.saveStory.bind(Database);

@@ -46,7 +46,7 @@ export default class AddPage {
       return;
     }
 
-    // --- Setup Map ---
+    // === Map setup ===
     let lat = -6.175389, lon = 106.827139;
     const map = L.map('map').setView([lat, lon], 15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -69,7 +69,7 @@ export default class AddPage {
       map.flyTo(event.latlng);
     });
 
-    // --- Submit Handler ---
+    // === Submit form ===
     const form = document.getElementById('add-form');
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -81,7 +81,7 @@ export default class AddPage {
 
       try {
         if (!navigator.onLine) {
-          // Offline mode
+          // === OFFLINE MODE ===
           const reader = new FileReader();
           reader.readAsDataURL(photo);
           reader.onload = async () => {
@@ -96,9 +96,21 @@ export default class AddPage {
             location.hash = '#/home';
           };
         } else {
-          // Online mode
+          // === ONLINE MODE ===
           await addStory({ name, description, photo, lat, lon });
           alert('Story added successfully!');
+
+          // === Trigger push notification ===
+          if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.getRegistration();
+            if (reg) {
+              reg.showNotification('Story Added', {
+                body: 'Your story has been added successfully!',
+                icon: '/icon-192x192.png'
+              });
+            }
+          }
+
           location.hash = '#/home';
         }
       } catch (error) {
@@ -106,7 +118,7 @@ export default class AddPage {
       }
     });
 
-    // --- Camera Feature ---
+    // === Camera Feature ===
     document.getElementById('camera-btn').addEventListener('click', async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
