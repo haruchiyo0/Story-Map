@@ -1,6 +1,7 @@
 import '../styles/styles.css';
 import App from './pages/app';
 import { registerServiceWorker } from './utils/index';
+import 'leaflet/dist/leaflet.css'
 
 let app;
 
