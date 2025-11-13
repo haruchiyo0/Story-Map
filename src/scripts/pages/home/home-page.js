@@ -33,7 +33,6 @@ export default class HomePage {
         return;
       }
 
-      // Get saved story IDs for marking favorites
       const savedStories = await Database.getAllStories();
       const savedIds = new Set(savedStories.map(s => s.id));
 
@@ -62,15 +61,12 @@ export default class HomePage {
         </li>
       `).join('');
 
-      // Initialize map
       initMap('map', stories);
 
-      // Setup search
       document.getElementById('search').addEventListener('input', (e) => {
         filterMarkers(e.target.value);
       });
 
-      // Setup favorite buttons
       document.querySelectorAll('.favorite-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           const button = e.target;
@@ -83,14 +79,12 @@ export default class HomePage {
             const isActive = button.classList.contains('active');
             
             if (isActive) {
-              // Remove from favorites
               await Database.deleteStory(id);
               button.classList.remove('active');
               button.textContent = '🤍 Save';
               button.setAttribute('aria-label', 'Add to favorites');
               this.#showToast('❌ Removed from favorites', 'error');
             } else {
-              // Add to favorites
               await Database.saveStory(story);
               button.classList.add('active');
               button.textContent = '❤️ Saved';

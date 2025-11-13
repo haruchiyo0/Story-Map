@@ -7,17 +7,14 @@ const PENDING_STORE = 'pending-stories';
 
 const dbPromise = openDB(DATABASE_NAME, DATABASE_VERSION, {
   upgrade(database) {
-    // Object store untuk stories yang disimpan (dari API)
     if (!database.objectStoreNames.contains(STORIES_STORE)) {
       const storyStore = database.createObjectStore(STORIES_STORE, {
         keyPath: 'id',
       });
-      // Index untuk search dan filter
       storyStore.createIndex('name', 'name', { unique: false });
       storyStore.createIndex('createdAt', 'createdAt', { unique: false });
     }
 
-    // Object store untuk stories yang menunggu sync (offline)
     if (!database.objectStoreNames.contains(PENDING_STORE)) {
       database.createObjectStore(PENDING_STORE, {
         keyPath: 'tempId',
@@ -28,8 +25,6 @@ const dbPromise = openDB(DATABASE_NAME, DATABASE_VERSION, {
 });
 
 const Database = {
-  // === CRUD Operations untuk Saved Stories ===
-  
   async saveStory(story) {
     if (!story || !story.id) {
       throw new Error('Story must have an id');
@@ -55,8 +50,6 @@ const Database = {
     return (await dbPromise).delete(STORIES_STORE, id);
   },
 
-  // === Search & Filter Operations ===
-  
   async searchStories(query) {
     const allStories = await this.getAllStories();
     if (!query) return allStories;
@@ -102,8 +95,6 @@ const Database = {
     });
   },
 
-  // === Offline Sync Operations ===
-  
   async savePendingStory(storyData) {
     const pendingStory = {
       ...storyData,
@@ -129,7 +120,6 @@ const Database = {
     await tx.done;
   },
 
-  // === Statistics ===
   
   async getStoriesCount() {
     const db = await dbPromise;

@@ -46,7 +46,6 @@ export default class AddPage {
       return;
     }
 
-    // === Map setup ===
     let lat = -6.175389, lon = 106.827139;
     const map = L.map('map').setView([lat, lon], 15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -69,7 +68,6 @@ export default class AddPage {
       map.flyTo(event.latlng);
     });
 
-    // === Submit form ===
     const form = document.getElementById('add-form');
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -85,7 +83,6 @@ export default class AddPage {
 
       try {
         if (!navigator.onLine) {
-          // === OFFLINE MODE ===
           const reader = new FileReader();
           reader.readAsDataURL(photo);
           reader.onload = async () => {
@@ -100,10 +97,8 @@ export default class AddPage {
             location.hash = '#/home';
           };
         } else {
-          // === ONLINE MODE ===
           await addStory({ name, description, photo, lat, lon });
           
-          // === TRIGGER PUSH NOTIFICATION ===
           await this.#sendPushNotification(name);
           
           alert('Story added successfully!');
@@ -117,7 +112,6 @@ export default class AddPage {
       }
     });
 
-    // === Camera Feature ===
     document.getElementById('camera-btn').addEventListener('click', async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -214,7 +208,6 @@ export default class AddPage {
 
   async #sendPushNotification(storyName) {
     try {
-      // Check if service worker is ready
       if (!('serviceWorker' in navigator)) {
         console.log('Service Worker not supported');
         return;
@@ -222,13 +215,11 @@ export default class AddPage {
 
       const registration = await navigator.serviceWorker.ready;
       
-      // Check if user has notification permission
       if (Notification.permission !== 'granted') {
         console.log('Notification permission not granted');
         return;
       }
 
-      // Show notification directly from service worker
       await registration.showNotification('🎉 Story Added!', {
         body: `Your story "${storyName}" has been published successfully!`,
         icon: '/favicon.png',

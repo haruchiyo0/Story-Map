@@ -1,7 +1,5 @@
-// Import Workbox
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
 
-// Aktifkan debug mode untuk development
 workbox.setConfig({ debug: false });
 
 const { precacheAndRoute } = workbox.precaching;
@@ -10,9 +8,6 @@ const { NetworkFirst, CacheFirst, StaleWhileRevalidate } = workbox.strategies;
 const { CacheableResponsePlugin } = workbox.cacheableResponse;
 const { ExpirationPlugin } = workbox.expiration;
 
-// ========================================
-// 1. PRECACHE - Cache assets saat install
-// ========================================
 precacheAndRoute([
   { url: '/', revision: '1.0.0' },
   { url: '/index.html', revision: '1.0.0' },
@@ -21,9 +16,6 @@ precacheAndRoute([
   { url: '/logo.png', revision: '1.0.0' }
 ]);
 
-// ========================================
-// 2. API STORIES - NetworkFirst strategy
-// ========================================
 registerRoute(
   ({ url }) => url.pathname.includes('/stories') || url.hostname.includes('story-api.dicoding.dev'),
   new NetworkFirst({
@@ -34,15 +26,12 @@ registerRoute(
       }),
       new ExpirationPlugin({
         maxEntries: 50,
-        maxAgeSeconds: 60 * 60 * 24 // 24 jam
+        maxAgeSeconds: 60 * 60 * 24 
       })
     ],
   })
 );
 
-// ========================================
-// 3. IMAGES - StaleWhileRevalidate strategy
-// ========================================
 registerRoute(
   ({ request }) => request.destination === 'image',
   new StaleWhileRevalidate({
@@ -53,15 +42,12 @@ registerRoute(
       }),
       new ExpirationPlugin({
         maxEntries: 100,
-        maxAgeSeconds: 60 * 60 * 24 * 30 // 30 hari
+        maxAgeSeconds: 60 * 60 * 24 * 30 
       })
     ],
   })
 );
 
-// ========================================
-// 4. MAP TILES - CacheFirst strategy
-// ========================================
 registerRoute(
   ({ url }) => 
     url.origin === 'https://tile.openstreetmap.org' || 
@@ -75,15 +61,12 @@ registerRoute(
       }),
       new ExpirationPlugin({
         maxEntries: 200,
-        maxAgeSeconds: 60 * 60 * 24 * 365 // 1 tahun
+        maxAgeSeconds: 60 * 60 * 24 * 365 
       })
     ],
   })
 );
 
-// ========================================
-// 5. STATIC RESOURCES - CacheFirst strategy
-// ========================================
 registerRoute(
   ({ request }) => 
     request.destination === 'font' || 
@@ -97,15 +80,12 @@ registerRoute(
       }),
       new ExpirationPlugin({
         maxEntries: 60,
-        maxAgeSeconds: 60 * 60 * 24 * 365 // 1 tahun
+        maxAgeSeconds: 60 * 60 * 24 * 365 
       })
     ],
   })
 );
 
-// ========================================
-// 6. OFFLINE PAGE FALLBACK
-// ========================================
 const OFFLINE_PAGE = '/index.html';
 const CACHE_NAME = 'offline-page-v1';
 
@@ -124,7 +104,6 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          // Hapus cache lama
           if (cacheName.includes('-v') && !cacheName.includes('-v1')) {
             console.log('[SW] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
@@ -135,9 +114,6 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// ========================================
-// 7. PUSH NOTIFICATION
-// ========================================
 self.addEventListener('push', (event) => {
   console.log('[SW] 🔔 Push notification received');
   
@@ -190,9 +166,6 @@ self.addEventListener('push', (event) => {
   event.waitUntil(showNotification());
 });
 
-// ========================================
-// 8. NOTIFICATION CLICK
-// ========================================
 self.addEventListener('notificationclick', (event) => {
   console.log('[SW] 🖱️ Notification clicked:', event.action);
   
@@ -222,9 +195,6 @@ self.addEventListener('notificationclick', (event) => {
   }
 });
 
-// ========================================
-// 9. BACKGROUND SYNC
-// ========================================
 self.addEventListener('sync', (event) => {
   console.log('[SW] 🔄 Background sync triggered:', event.tag);
   
@@ -272,33 +242,23 @@ async function syncOfflineStories() {
   }
 }
 
-// ========================================
-// 10. OFFLINE FALLBACK HANDLER
-// ========================================
 self.addEventListener('fetch', (event) => {
-  // Skip untuk request non-GET
   if (event.request.method !== 'GET') return;
   
-  // Skip untuk chrome extensions
   if (event.request.url.startsWith('chrome-extension')) return;
   
   event.respondWith(
     fetch(event.request).catch(async () => {
-      // Jika offline dan request HTML, return offline page
       if (event.request.headers.get('accept').includes('text/html')) {
         const cache = await caches.open(CACHE_NAME);
         return cache.match(OFFLINE_PAGE);
       }
       
-      // Coba cari di cache
       return caches.match(event.request);
     })
   );
 });
 
-// ========================================
-// HELPER FUNCTIONS
-// ========================================
 function openIndexedDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('storymap', 1);

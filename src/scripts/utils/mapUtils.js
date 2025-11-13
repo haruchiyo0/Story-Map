@@ -5,32 +5,24 @@ import markerShadowPng from "leaflet/dist/images/marker-shadow.png";
 let map = null;
 let markers = [];
 
-/**
- * Inisialisasi peta utama di halaman Home
- */
 export function initMap(containerId, stories) {
-  // Bersihkan map sebelumnya kalau ada
   if (map) {
     map.remove();
     map = null;
     markers = [];
   }
 
-  // Cegah error leaflet ID nempel di DOM
   const container = L.DomUtil.get(containerId);
   if (container && container._leaflet_id) {
     container._leaflet_id = null;
   }
 
-  // Inisialisasi map baru
   map = L.map(containerId).setView([0, 0], 2);
 
-  // Tambahkan tile default (OpenStreetMap)
   const openStreet = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap",
   }).addTo(map);
 
-  // Tambahkan opsi tampilan satelit
   const satellite = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {
@@ -38,7 +30,6 @@ export function initMap(containerId, stories) {
     }
   );
 
-  // Tambahkan kontrol layer
   L.control
     .layers(
       {
@@ -50,13 +41,9 @@ export function initMap(containerId, stories) {
     )
     .addTo(map);
 
-  // Tambahkan marker dari data stories
   addMarkers(stories);
 }
 
-/**
- * Menambahkan marker dari daftar story
- */
 export function addMarkers(stories) {
   if (!map) return;
 
@@ -86,9 +73,6 @@ export function addMarkers(stories) {
   });
 }
 
-/**
- * Filter marker sesuai query pencarian
- */
 export function filterMarkers(query) {
   if (!map) return;
 
@@ -102,11 +86,7 @@ export function filterMarkers(query) {
   });
 }
 
-/**
- * Inisialisasi peta untuk halaman tambah lokasi (Add Story)
- */
 export function initMapForLocation(containerId, callback) {
-  // Hapus map lama kalau ada
   if (map) {
     map.remove();
     map = null;

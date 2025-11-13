@@ -156,7 +156,6 @@ export default class FavoritePage {
   }
 
   #attachStoryEventListeners() {
-    // Delete buttons
     document.querySelectorAll('.delete-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         const id = e.target.dataset.id;
@@ -168,17 +167,14 @@ export default class FavoritePage {
       });
     });
 
-    // View location buttons
     document.querySelectorAll('.view-location-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const lat = parseFloat(e.target.dataset.lat);
         const lon = parseFloat(e.target.dataset.lon);
         
-        // Scroll to map and focus on location
         const mapElement = document.getElementById('map');
         mapElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         
-        // You can add more map interaction here if needed
         console.log('Viewing location:', { lat, lon });
       });
     });
@@ -188,11 +184,9 @@ export default class FavoritePage {
     try {
       await Database.deleteStory(id);
       
-      // Update local arrays
       this.#allStories = this.#allStories.filter(s => s.id !== id);
       this.#filteredStories = this.#filteredStories.filter(s => s.id !== id);
       
-      // Re-render
       await this.#renderStories();
       this.#renderStats();
       this.#initializeMap();
@@ -205,19 +199,16 @@ export default class FavoritePage {
   }
 
   #setupEventListeners() {
-    // Search
     const searchInput = document.getElementById('search-favorites');
     searchInput.addEventListener('input', async (e) => {
       const query = e.target.value.trim();
       await this.#applyFilters(query);
     });
 
-    // Sort by
     const sortBySelect = document.getElementById('sort-by');
     sortBySelect.addEventListener('change', async (e) => {
       this.#currentSort = e.target.value;
       
-      // Update order options based on sort type
       const orderSelect = document.getElementById('sort-order');
       if (this.#currentSort === 'name') {
         orderSelect.innerHTML = `
@@ -235,14 +226,12 @@ export default class FavoritePage {
       await this.#applySort();
     });
 
-    // Sort order
     const sortOrderSelect = document.getElementById('sort-order');
     sortOrderSelect.addEventListener('change', async (e) => {
       this.#currentOrder = e.target.value;
       await this.#applySort();
     });
 
-    // Clear all
     const clearAllBtn = document.getElementById('clear-all');
     clearAllBtn.addEventListener('click', async () => {
       if (this.#allStories.length === 0) {
@@ -272,7 +261,6 @@ export default class FavoritePage {
 
   async #applySort() {
     try {
-      // Sort the filtered stories
       this.#filteredStories = this.#filteredStories.sort((a, b) => {
         let aVal = a[this.#currentSort];
         let bVal = b[this.#currentSort];
@@ -301,7 +289,6 @@ export default class FavoritePage {
 
   async #clearAllFavorites() {
     try {
-      // Delete all stories one by one
       for (const story of this.#allStories) {
         await Database.deleteStory(story.id);
       }

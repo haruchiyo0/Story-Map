@@ -25,17 +25,14 @@ export async function registerServiceWorker() {
   }
 
   try {
-    // Unregister existing service workers first (untuk development)
     const registrations = await navigator.serviceWorker.getRegistrations();
     for (const registration of registrations) {
       await registration.unregister();
       console.log('Unregistered old service worker');
     }
 
-    // Wait a bit for cleanup
     await sleep(100);
 
-    // Register new service worker
     const registration = await navigator.serviceWorker.register('/sw.js', {
       scope: '/',
       updateViaCache: 'none'
@@ -45,11 +42,9 @@ export async function registerServiceWorker() {
     console.log('Scope:', registration.scope);
     console.log('State:', registration.installing || registration.waiting || registration.active);
 
-    // Wait for service worker to be ready
     await navigator.serviceWorker.ready;
     console.log('✅ Service Worker is ready');
 
-    // Handle updates
     registration.addEventListener('updatefound', () => {
       const newWorker = registration.installing;
       console.log('🔄 New Service Worker found, installing...');
@@ -58,7 +53,6 @@ export async function registerServiceWorker() {
         console.log('Service Worker state:', newWorker.state);
         
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // New version available
           if (confirm('New version available! Reload to update?')) {
             newWorker.postMessage({ type: 'SKIP_WAITING' });
             window.location.reload();
@@ -67,13 +61,11 @@ export async function registerServiceWorker() {
       });
     });
 
-    // Listen for controlling service worker changes
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       console.log('Controller changed, reloading...');
       window.location.reload();
     });
 
-    // Check for updates periodically (every hour)
     setInterval(() => {
       registration.update();
       console.log('Checking for Service Worker updates...');
@@ -87,18 +79,15 @@ export async function registerServiceWorker() {
   }
 }
 
-// Helper untuk mengecek koneksi online/offline
 export function isOnline() {
   return navigator.onLine;
 }
 
-// Event listeners untuk online/offline status
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {
     console.log('🌐 App is online');
     hideOfflineIndicator();
     
-    // Trigger sync jika ada data offline
     if (isServiceWorkerAvailable()) {
       navigator.serviceWorker.ready.then(registration => {
         if ('sync' in registration) {
@@ -113,7 +102,6 @@ if (typeof window !== 'undefined') {
     showOfflineIndicator();
   });
 
-  // Check initial state
   if (!navigator.onLine) {
     showOfflineIndicator();
   }
@@ -151,7 +139,6 @@ function hideOfflineIndicator() {
   }
 }
 
-// Add CSS animations
 if (typeof document !== 'undefined') {
   const style = document.createElement('style');
   style.textContent = `

@@ -10,7 +10,6 @@ class SyncHelper {
   }
 
   #setupEventListeners() {
-    // Listen for online/offline events
     window.addEventListener('online', () => {
       console.log('🌐 Back online - triggering sync');
       this.#showOnlineNotification();
@@ -22,15 +21,11 @@ class SyncHelper {
       this.#showOfflineNotification();
     });
 
-    // Check initial state
     if (!navigator.onLine) {
       this.#showOfflineNotification();
     }
   }
 
-  /**
-   * Save story for later sync when offline
-   */
   async saveForLaterSync(storyData) {
     try {
       const tempId = await Database.savePendingStory(storyData);
@@ -48,9 +43,6 @@ class SyncHelper {
     }
   }
 
-  /**
-   * Sync all pending stories to server
-   */
   async syncPendingStories() {
     if (this.#isSyncing) {
       console.log('⏳ Sync already in progress');
@@ -91,13 +83,11 @@ class SyncHelper {
 
       for (const pendingStory of pendingStories) {
         try {
-          // Convert base64 photo to file if needed
           const photoFile = this.#base64ToFile(
             pendingStory.photo,
             'story-photo.jpg'
           );
 
-          // Upload to API
           await addStory({
             name: pendingStory.name,
             description: pendingStory.description,
@@ -106,7 +96,6 @@ class SyncHelper {
             lon: pendingStory.lon
           });
 
-          // Remove from pending after successful upload
           await Database.deletePendingStory(pendingStory.tempId);
           
           results.success++;
@@ -167,45 +156,27 @@ class SyncHelper {
     }
   }
 
-  /**
-   * Get pending stories count
-   */
   async getPendingCount() {
     return await Database.getPendingCount();
   }
 
-  /**
-   * Get all pending stories
-   */
   async getPendingStories() {
     return await Database.getAllPendingStories();
   }
 
-  /**
-   * Clear all pending stories
-   */
   async clearPendingStories() {
     await Database.clearAllPendingStories();
     this.#notifyListeners({ type: 'pending-cleared' });
   }
 
-  /**
-   * Check if currently syncing
-   */
   isSyncing() {
     return this.#isSyncing;
   }
 
-  /**
-   * Check if device is online
-   */
   isOnline() {
     return navigator.onLine;
   }
 
-  /**
-   * Register sync listener
-   */
   onSyncEvent(callback) {
     this.#syncListeners.push(callback);
     return () => {
@@ -224,12 +195,10 @@ class SyncHelper {
   }
 
   #base64ToFile(base64String, filename) {
-    // If already a File object, return it
     if (base64String instanceof File) {
       return base64String;
     }
 
-    // If base64 string, convert to File
     const arr = base64String.split(',');
     const mime = arr[0].match(/:(.*?);/)[1];
     const bstr = atob(arr[1]);
@@ -289,7 +258,6 @@ class SyncHelper {
     indicator.innerHTML = '📡 You are offline - Changes will sync when connection returns';
     document.body.appendChild(indicator);
 
-    // Remove when online
     const removeIndicator = () => {
       indicator.remove();
       window.removeEventListener('online', removeIndicator);
@@ -327,7 +295,6 @@ class SyncHelper {
   }
 }
 
-// Create singleton instance
 const syncHelper = new SyncHelper();
 
 export default syncHelper;

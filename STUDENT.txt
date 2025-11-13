@@ -1,2 +1,2 @@
-APP_URL=https://jovial-travesseiro-af42c2.netlify.app/
+APP_URL=https://musical-dolphin-0945ac.netlify.app/
 MAP_SERVICE_API_KEY=Tidak diperlukan
