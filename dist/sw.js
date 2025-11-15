@@ -1,13 +1,13 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
-
+ 
 workbox.setConfig({ debug: false });
-
+ 
 const { precacheAndRoute } = workbox.precaching;
-const { registerRoute } = workbox.routing;
+const { registerRoute, setCatchHandler } = workbox.routing;
 const { NetworkFirst, CacheFirst, StaleWhileRevalidate } = workbox.strategies;
 const { CacheableResponsePlugin } = workbox.cacheableResponse;
 const { ExpirationPlugin } = workbox.expiration;
-
+ 
 precacheAndRoute([
   { url: '/', revision: '1.0.0' },
   { url: '/index.html', revision: '1.0.0' },
@@ -15,7 +15,7 @@ precacheAndRoute([
   { url: '/favicon.png', revision: '1.0.0' },
   { url: '/logo.png', revision: '1.0.0' }
 ]);
-
+ 
 registerRoute(
   ({ url }) => url.pathname.includes('/stories') || url.hostname.includes('story-api.dicoding.dev'),
   new NetworkFirst({
@@ -31,7 +31,7 @@ registerRoute(
     ],
   })
 );
-
+ 
 registerRoute(
   ({ request }) => request.destination === 'image',
   new StaleWhileRevalidate({
@@ -47,7 +47,7 @@ registerRoute(
     ],
   })
 );
-
+ 
 registerRoute(
   ({ url }) => 
     url.origin === 'https://tile.openstreetmap.org' || 
@@ -66,7 +66,7 @@ registerRoute(
     ],
   })
 );
-
+ 
 registerRoute(
   ({ request }) => 
     request.destination === 'font' || 
@@ -86,34 +86,19 @@ registerRoute(
   })
 );
 
-const OFFLINE_PAGE = '/index.html';
-const CACHE_NAME = 'offline-page-v1';
-
-self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.add(OFFLINE_PAGE))
-      .then(() => self.skipWaiting())
-  );
+setCatchHandler(async ({ event }) => {
+  if (event.request.destination === 'document') {
+    const cache = await caches.open('workbox-precache-v2-https://yourapp.com/');
+    const cachedResponse = await cache.match('/index.html');
+    
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+  }
+  
+  return Response.error();
 });
-
-self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName.includes('-v') && !cacheName.includes('-v1')) {
-            console.log('[SW] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
-  );
-});
-
+ 
 self.addEventListener('push', (event) => {
   console.log('[SW] 🔔 Push notification received');
   
@@ -165,7 +150,7 @@ self.addEventListener('push', (event) => {
   
   event.waitUntil(showNotification());
 });
-
+ 
 self.addEventListener('notificationclick', (event) => {
   console.log('[SW] 🖱️ Notification clicked:', event.action);
   
@@ -194,7 +179,7 @@ self.addEventListener('notificationclick', (event) => {
     );
   }
 });
-
+ 
 self.addEventListener('sync', (event) => {
   console.log('[SW] 🔄 Background sync triggered:', event.tag);
   
@@ -202,7 +187,7 @@ self.addEventListener('sync', (event) => {
     event.waitUntil(syncOfflineStories());
   }
 });
-
+ 
 async function syncOfflineStories() {
   console.log('[SW] 📤 Syncing offline stories...');
   
@@ -241,24 +226,7 @@ async function syncOfflineStories() {
     console.error('[SW] ❌ Sync process failed:', error);
   }
 }
-
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-  
-  if (event.request.url.startsWith('chrome-extension')) return;
-  
-  event.respondWith(
-    fetch(event.request).catch(async () => {
-      if (event.request.headers.get('accept').includes('text/html')) {
-        const cache = await caches.open(CACHE_NAME);
-        return cache.match(OFFLINE_PAGE);
-      }
-      
-      return caches.match(event.request);
-    })
-  );
-});
-
+ 
 function openIndexedDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('storymap', 1);
@@ -266,7 +234,7 @@ function openIndexedDB() {
     request.onerror = () => reject(request.error);
   });
 }
-
+ 
 function getAllPendingStories(db) {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(['pending-stories'], 'readonly');
@@ -276,7 +244,7 @@ function getAllPendingStories(db) {
     request.onerror = () => reject(request.error);
   });
 }
-
+ 
 function deletePendingStory(db, tempId) {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(['pending-stories'], 'readwrite');
@@ -286,7 +254,7 @@ function deletePendingStory(db, tempId) {
     request.onerror = () => reject(request.error);
   });
 }
-
+ 
 function createFormData(story) {
   const formData = new FormData();
   formData.append('description', `${story.name}: ${story.description}`);
@@ -300,7 +268,7 @@ function createFormData(story) {
   
   return formData;
 }
-
+ 
 function base64ToBlob(base64String) {
   const parts = base64String.split(',');
   const contentType = parts[0].split(':')[1].split(';')[0];
@@ -314,5 +282,5 @@ function base64ToBlob(base64String) {
   
   return new Blob([uInt8Array], { type: contentType });
 }
-
+ 
 console.log('[SW] ✅ Service Worker loaded successfully');
