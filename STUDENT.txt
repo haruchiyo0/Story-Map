@@ -1,2 +1,2 @@
-APP_URL=https://musical-dolphin-0945ac.netlify.app/
+APP_URL=https://bespoke-dasik-074690.netlify.app/
 MAP_SERVICE_API_KEY=Tidak diperlukan
